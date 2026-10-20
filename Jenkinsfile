@@ -48,8 +48,28 @@ pipeline {
                 }
             }
         }
-    }
 
+        stage('Deploy to Kubernetes') {
+            steps {
+                dir('ems-k8s') {
+                    withCredentials([
+                        file(
+                            credentialsID: env.k8s_CRED_ID,
+                            variable: 'KUBECONFIG'
+                        )
+                    ]) {
+                        bat 'helm upgrade --install ems . \\ems --set-string backend.image.tag=%IMAGE_TAG% --set-string frontend.image.tag=%IMAGE_TAG% --wait --timeout 5m'
+
+                        bat 'kubectl rollout status deployment/backend --timeout=5m'
+                        bat 'kubectl rollout status deployment/frontend --timeout=5m'
+
+                        bat 'kubectl get pods'
+                    }
+                }
+            }
+        }
+    }
+    
     post {
         always {
             bat 'docker logout'

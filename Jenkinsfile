@@ -1,6 +1,7 @@
 pipeline {
     agent any
-    
+
+     
     environment {
         CRED_ID = 'dockerhub-credentials'
 
@@ -48,6 +49,7 @@ pipeline {
                 }
             }
         }
+<<<<<<< HEAD
 
         stage('Deploy to Kubernetes') {
             steps {
@@ -68,6 +70,8 @@ pipeline {
                 }
             }
         }
+=======
+>>>>>>> 6408ffc29cfa75c27b47985ccab7d461c29ade03
     }
     
     post {
@@ -76,3 +80,5 @@ pipeline {
         }
     }
 }
+
+

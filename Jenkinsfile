@@ -1,11 +1,10 @@
 pipeline {
     agent any
 
-     
     environment {
         CRED_ID = 'dockerhub-credentials'
-
-        PATH = "C:\\Users\\dmurl\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin;${env.PATH}"
+        K8S_CRED_ID = 'kind-kubeconfig'
+        PATH = "C:\\Users\\dmurl\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin;C:\\Users\\dmurl\\AppData\\Local\\Microsoft\\WinGet\\Links;${env.PATH}"
     }
 
     stages {
@@ -49,36 +48,42 @@ pipeline {
                 }
             }
         }
-<<<<<<< HEAD
 
-        stage('Deploy to Kubernetes') {
+        stage('Deploy with Helm') {
             steps {
                 dir('ems-k8s') {
+                    deleteDir()
+
+                    git branch: 'main', 
+                        url: 'https://github.com/murlikishan8-create/ems-k8s.git'
+                
                     withCredentials([
                         file(
-                            credentialsID: env.k8s_CRED_ID,
+                            credentialsId: env.K8S_CRED_ID,
                             variable: 'KUBECONFIG'
-                        )
+                       )
                     ]) {
-                        bat 'helm upgrade --install ems . \\ems --set-string backend.image.tag=%IMAGE_TAG% --set-string frontend.image.tag=%IMAGE_TAG% --wait --timeout 5m'
+                        bat 'helm version --short'
+                        bat 'kubectl get nodes'
+
+                        bat 'helm upgrade --install ems .\\ems --wait --timeout 5m'
+                        
+                        bat 'kubectl rollout restart deployment/backend'
+                        bat 'kubectl rollout restart deployment/frontend'
 
                         bat 'kubectl rollout status deployment/backend --timeout=5m'
                         bat 'kubectl rollout status deployment/frontend --timeout=5m'
 
-                        bat 'kubectl get pods'
+                        bat 'kubectl get pods,pvc'
                     }
                 }
             }
         }
-=======
->>>>>>> 6408ffc29cfa75c27b47985ccab7d461c29ade03
     }
-    
+
     post {
         always {
             bat 'docker logout'
         }
     }
 }
-
-

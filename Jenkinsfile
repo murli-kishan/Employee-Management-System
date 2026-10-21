@@ -66,7 +66,7 @@ pipeline {
                         bat 'helm version --short'
                         bat 'kubectl get nodes'
 
-                        bat 'helm upgrade --install ems .\\ems --wait --timeout 5m'
+                        bat 'helm upgrade --install ems .\\ems --force-conflicts --wait --timeout 5m'
                         
                         bat 'kubectl rollout restart deployment/backend'
                         bat 'kubectl rollout restart deployment/frontend'

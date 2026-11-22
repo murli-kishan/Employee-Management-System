@@ -1,30 +1,54 @@
 services:
 
+  mongodb:
+    image: mongo:7.0.43-jammy
+    container_name: ems-mongodb
+    restart: unless-stopped
+
+    volumes:
+
+      - mongodb-data:/data/db
+
+    healthcheck:
+      test: ["CMD", "mongosh","--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+
+  backend:
+    build:
+      context: ./server
+
+    image: harryp0tter/employee-management-backend:${IMAGE_TAG:-v1}
+    container_name: ems-backend
+    restart: unless-stopped
+
+    environment:
+      DATABASE_URL: mongodb://mongodb:27017
+      DB_NAME: EMS
+      PORT: 8000
+      NODE_ENV: production
+
+    depends_on:
+      mongodb:
+        condition: service_healthy
+
+    expose:
+      - "8000"
+
+     
   frontend:
-    build: ./client
-    container_name: employee-client
+    build:
+      context: ./client
+    image: harryp0tter/employee-management-frontend:${IMAGE_TAG:-v1}
+    container_name: ems-frontend
+    restart: unless-stopped
     ports:
-      - "5173:80"
+      - "8080:80"
     depends_on:
       - backend
 
-  backend:
-    build: ./server
-    container_name: employee-server
-    ports:
-      - "8000:8000"
-    environment:
-      DATABASE_URL: mongodb://mongodb:27017
-    depends_on:
-      - mongodb
-
-  mongodb:
-    image: mongo:8
-    container_name: employee-mongodb
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongodb-data:/data/db
-
 volumes:
   mongodb-data:
+    name: ems-mongodb-data

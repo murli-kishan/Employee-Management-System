@@ -1,0 +1,33 @@
+---
+
+- name: Deploy EMS application
+  hosts: app_server
+  become: yes
+  vars_files:
+    - vars/main.yml
+
+  tasks:
+
+    - name: pull backend image
+      community.docker.docker_image:
+        name: "{{ backend_image }}"
+        tag: "{{ image_tag }}"
+        source: pull
+
+    - name: pull frontend image
+      community.docker.docker_image:
+        name: "{{ frontend_image }}"
+        tag: "{{ image_tag }}"
+        source: pull
+
+    - name: Deploy docker-compose.yml
+      ansible.builtin.template:
+        src: templates/docker-compose.yml.j2
+        dest: "{{ compose_path }}/docker-compose.yml"
+      notify: Restart stack
+
+  handlers:
+    - name: Restart stack
+      community.docker.docker_compose_v2:
+        project_src: "{{ compose_path }}"
+        state: present

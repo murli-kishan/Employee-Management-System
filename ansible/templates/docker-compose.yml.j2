@@ -1,0 +1,49 @@
+services:
+
+  mongodb:
+    image: mongo:7.0.43-jammy
+    container_name: ems-mongodb
+    restart: unless-stopped
+
+    volumes:
+
+      - mongodb-data:/data/db
+
+    healthcheck:
+      test: ["CMD", "mongosh","--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+
+  backend:
+    image: "{{ backend_image }}:{{ image_tag }}"
+    container_name: ems-backend
+    restart: unless-stopped
+
+    environment:
+      DATABASE_URL: mongodb://mongodb:27017
+      DB_NAME: EMS
+      PORT: 8000
+      NODE_ENV: production
+
+    depends_on:
+      mongodb:
+        condition: service_healthy
+
+    expose:
+      - "8000"
+
+     
+  frontend:
+    image: "{{ frontend_image }}:{{ image_tag }}"
+    container_name: ems-frontend
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+
+volumes:
+  mongodb-data:
+    name: ems-mongodb-data

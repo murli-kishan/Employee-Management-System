@@ -45,8 +45,8 @@ pipeline {
             
             stage('Deploy') {
                 steps {
-                    dir('/opt/ansible') {
-                        sh 'ansible-playbook deploy.yml --extra-vars "image_tag=${IMAGE_TAG}"'
+                    dir('ansible') {
+                        sh 'ansible-playbook -i /etc/ansible/hosts deploy.yml --extra-vars "image_tag=${IMAGE_TAG}"'
                     }
                 }
             }

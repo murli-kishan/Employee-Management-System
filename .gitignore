@@ -1,3 +1,10 @@
+# Environment variables and secrets
 .env
-server/.env
+.env.*
+!.env.example
+
+# SSH Private keys
 *.pem
+*.key
+*.ppk
+
